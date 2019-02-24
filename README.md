@@ -83,6 +83,7 @@ $ npm run start:slow
 - [`00-start`]() Tu punto de partida
 - [`01-setup`]() Configuración de Apollo Boost y React Apoll
 - [`02-query`]() Escribiendo componentes de consulta
+- [`03-dynamic-queries`]() Asignado variables a nuestra consulta
 
 
 ## Client's Installation
@@ -347,6 +348,63 @@ Antes de terminar esta lección sobre el componente de consulta, queremos refact
 - [-] Agregar importaciones necesarias.
 - [-] Actualizar `App.js` para funcionar con nuestro refactor.
 
+## Provide Dynamic Arguments in a Apollo Query Component with GraphQL Variables
+
+GraphQL soporta parámetros para consultas vía variables. Nos permiten aportar argumentos dinámicos. A menudo queremos que estas variables dependan de las decisiones tomadas por un usuario. En esta sesión, veremos cómo implementar una variable de filtro basada en un elemento de checkbox en la UI utilizando el componente de consulta de Apollo.
+
+Para filtrar recetas vegetarianas, nuestra receta acepta un argumento booleano, `vegetarian`.
+
+```js
+const QUERY = gql`
+{
+  recipes(vegetarian: true)  {
+    id
+    title
+  }
+}
+`
+```
+
+Una vez que la página se vuelve a cargar, podemos ver que ahora solo aparecen recetas vegetarianas.
+
+En esta lección, queremos que el argumento vegetariano dependa de una casilla de verificación, que puede ser controlada por un usuario.
+
+Antes de hacerlo, comencemos con algunos conceptos básicos. Usando la etiqueta de la plantilla `gql`, podemos asegurarnos de que un `query` debe proporcionarse con ciertas variables.
+
+Primero declaramos un nombre para una consulta específica, usando la sintaxi de `query` y luego el nombre. Entonces indicamos que la variable `vegetarian` es de tipo `Boolean!`. Al agregar un signo de exclamación (`!`), declaramos esta variable como obligatoria.
+
+```js
+const QUERY = gql`
+  query recipes($vegetarian: Boolean! {
+    recipes(vegetarian: $ vegetarian) {
+      id
+      title
+    }
+  }
+`;
+```
+
+Para proveer variables al componente `Query`, simplemente agregamos otra prop, `variables`. Esta prop acepta un objeto con las variables de consulta como propiedades clave-valor. En nuestro caso, nos propusimos `vegetarian: true`.
+
+```jsx
+const Recipes = () => (
+  <Query query={QUERY} variables={{ vegetarian: true}}>
+    ...
+  </Query>
+)
+```
+
+Ahora, actualizamos el navegador y verificamos que solo vemos comidas vegetarianas.
+
+### TODO
+
+A continuación, queremos implementar la casilla de verificación de la interfaz de usuario y hacer un seguimiento de su estado.
+
+- [-] Crear un checkbox con el label *vegetarian*.
+- [-] Capturar el evento `onChange` para este field.
+- [-] Actualizar el estado con el valor del *checkbox*.
+- [-] Asignar el estado a la variable `vegetarian` del componente `Query`.
+- [-] **BONUS!!** Usar [React Hooks](https://reactjs.org/docs/hooks-reference.html).
 
 ## References
 
@@ -354,3 +412,5 @@ Antes de terminar esta lección sobre el componente de consulta, queremos refact
 - [graphql-tag](https://github.com/apollographql/graphql-tag)
 - [React context](https://reactjs.org/docs/context.html)
 - [render props](https://reactjs.org/docs/render-props.html)
+- [Caching data](https://www.apollographql.com/docs/react/advanced/caching.html)
+- [React Hooks](https://reactjs.org/docs/hooks-reference.html)
