@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import gql from "graphql-tag";
 import { Query } from "react-apollo";
 
-const QUERY = gql`
+export const GET_RECIPES = gql`
   query recipes($vegetarian: Boolean!) {
     recipes(vegetarian: $vegetarian) {
       id
@@ -36,7 +36,7 @@ const Recipes = () => {
         />
         <span>vegetarian</span>
       </label>
-      <Query query={QUERY} variables={{ vegetarian: checked.vegetarian }}>
+      <Query query={GET_RECIPES} variables={{ vegetarian: checked.vegetarian }}>
         {
           ({ data, loading, error }) => {
             if (loading) return <p>Loading…</p>;
