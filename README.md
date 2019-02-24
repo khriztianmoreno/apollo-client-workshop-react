@@ -84,6 +84,7 @@ $ npm run start:slow
 - [`01-setup`]() Configuración de Apollo Boost y React Apoll
 - [`02-query`]() Escribiendo componentes de consulta
 - [`03-dynamic-queries`]() Asignado variables a nuestra consulta
+- [`04-mutations`]() Escribiendo componentes de mutación
 
 
 ## Client's Installation
@@ -406,6 +407,163 @@ A continuación, queremos implementar la casilla de verificación de la interfaz
 - [-] Asignar el estado a la variable `vegetarian` del componente `Query`.
 - [-] **BONUS!!** Usar [React Hooks](https://reactjs.org/docs/hooks-reference.html).
 
+## Update Data using the Apollo Mutation component
+En esta lección, usaremos el componente Mutación para invocar una mutación de una API GraphQL. Además, cubrimos cómo actualizar la memoria caché local mediante consultas de recuperación, así como mejorar la experiencia del usuario cuando se trata de mutaciones. Al final, discutimos varios errores relacionados con las mutaciones y las posibles formas de abordarlos.
+
+Para esta lección, vamos a comenzar con las tareas que tú debes terminar para poder avanzar. La idea es crear un un componente `AddRecipe` que contenga dos campos de entrada, uno para el título y otro para indicar si la receta es una receta vegetariana.
+
+![Formulario para agregar recetas](./.readme-static/03.png)
+
+### TODO
+
+- [-] Crear componenete `AddRecipe`.
+- [-] Agregar campo `title` al formulario.
+- [-] Agregar campo `vegetarian` de tipo *checkbox* al formulario.
+- [-] Actualizar el estado con los valores del formulario.
+- [-] **BONUS!!** Usar [React Hooks](https://reactjs.org/docs/hooks-reference.html).
+
+Si hace clic en el botón Agregar, no ocurrirá nada en este momento, excepto hacer que los campos se limpien.
+
+**Implementamos mutaciones básicas.**
+
+Vamos a enviar la nueva información de la receta(formulario que debimos crear previamente) a nuestro back-end GraphQL. Vamos a nuestro componente `AddReecipe` y al principio importamos `mutation`
+
+```js
+import { mutation } from "react-apollo";
+```
+
+Luego envolvemos nuestro formulario con este componente. Tiene un prop obligatoria, que es `mutation`. En nuestro caso, queremos agregar un `addRecipe` ya que nuestro backend asi lo estableció.
+
+```jsx
+render() {
+  return (
+    <Mutation mutation={ADD_RECIPE_MUTATION}>
+    ...
+    </mutation>
+  )
+}
+```
+
+Dado que todavía no tenemos tal mutación, necesitamos crearla. Al igual que con las consultas, vamos a utilizar el template tag `gql`.
+
+```js
+const ADD_RECIPE_MUTATION = gql`
+  mutation addRecipe($recipe: RecipeInput!) {
+    addRecipe(recipe: $recipe)
+    {
+      id
+      title
+    }
+}
+`
+```
+
+Ahora que tenemos nuestra mutación lista, usémosla. El *componenet child*  de `mutation` debe ser exactamente una función. Esto es llamado *render prop*. El llamado con la función de mutar que llamada `addRecipe` de acuerdo a la definición del backend. El segundo argumento es un objeto que contiene un resultado de `mutation`, así como el estado de `loading` y `error`.
+
+```jsx
+render() {
+  return (
+    <Mutation mutation={ADD_RECIPE_MUTATION}> {(addRecipe, { loading, error })
+
+    ...
+```
+
+Una vez que se envía el formulario, podemos usar nuestra función `addRecipe` para desencadenar la `mutation` y pasar el objeto de la receta, que contiene la propiedad `title` y `vegetarian`.
+
+```jsx
+{(addRecipe, { loading, error }) => (
+  <form
+    onSubmit={evt => {
+      evt.preventDefault();
+      addRecipe({
+        variables: {
+          recipe: { title: this.state.title, vegetarian: this.state.vegetarian }
+        }
+      });
+    }}
+```
+¿Terminamos? Aún no. A favor de un buen UX, también debemos indicar el estado de carga e informar al usuario, en caso de que se produzca un error. Esto es todo lo que necesitamos para implementar la mutación.
+
+```jsx
+<div>
+  <button>Add Recipe</button>
+  {loading && <p>Loading...</p>}
+  {error && <p>Error :( Please try again</p>}
+</div>
+```
+
+Podemos ir al navegador y hacer clic en el botón *Add Recipe* para enviar el formulario. Aunque estoy seguro de que nuestra mutación **tuvo éxito**, no vemos reflejado nuestra nueva receta en la lista.
+
+Este es el causado porque la consulta que trae la lista de recetas **se encuentra en otro componente**. De ninguna manera indicamos que esta lista debería actualizarse una vez que la mutación haya finalizado. Podemos verificar rápidamente que nuestra mutación tuvo éxito solo con actualizar la página.
+
+Ahora, queremos actualizar la lista con la mutación. Por lo tanto, podemos usar la prop `refetchQueries` en el componente `Mutation`. Esto acepta una serie de consultas, que se volverán a ejecutar una vez que la mutación haya tenido éxito. Vamos a proporcionar nuestra consulta de `recipes`.
+
+```jsx
+render() {
+  return (
+    <Mutation 
+      mutation={ADD_RECIPE_MUTATION}
+      refetchQueries={[
+        {
+          query: gql`
+            query recipes {
+              recipes {
+                id
+                title
+              }
+            }
+        } `
+      ]}
+    >
+    {(addRecipe, { loading, error })
+...
+```
+
+Desafortunadamente, esto no funcionará, porque la consulta en el componente `Recipes` acepta una variable `vegetarian` y por lo tanto, es diferente.
+
+Esto significa que debemos pasar exactamente la misma consulta, con exactamente las mismas variables. Si bien podríamos copiarlo y pegarlo ahora, en este punto, probablemente sea mejor si exportamos la consulta y la importamos en este archivo, así como en la receta.
+
+```js
+export const QUERY = gql`
+  query recipes($vegetarian: Boolean!) {
+    recipes(vegetarian: $vegetarian) {
+      id
+      title
+    }
+  }
+`;
+```
+
+Luego usamos las consultas de recetas dentro de la `refetchQueries`, donde pasamos un objecto vegetarianos y otro que no lo son.
+
+```jsx
+<Mutation
+  mutation={ADD_RECIPE_MUTATION}
+  refetchQueries={[
+    { query: QUERY, variables: { vegetarian: false } },
+    { query: QUERY, variables: { vegetarian: true } },
+  ]}
+>
+```
+
+Vamos a intentarlo. Añadimos una nueva receta. Luego veremos cómo se activan las `refetchQueries` después de que la mutación haya finalizado con éxito. Esto, sin embargo, podría no ser la experiencia de usuario deseada que está buscando. Personalmente prefiero si el indicador de carga permanece activo hasta que se actualicen las `refetchQueries`. Afortunadamente, este comportamiento es trivial de implementar simplemente agregando un prop `awaitRefetchQueries` y configurándolo en `true`.
+
+```jsx
+<Mutation
+  mutation={ADD_RECIPE_MUTATION}
+  refetchQueries={[
+    { query: QUERY, variables: { vegetarian: false } },
+    { query: QUERY, variables: { vegetarian: true } },
+  ]}
+  awaitRefetchQueries={true}
+>
+```
+
+Vamos a actualizar la página. Luego añadimos otro plato vegetariano. Como puede ver, esta receta apareció en la lista al mismo tiempo que desaparecía el indicador de carga. Si activamos el filtro vegetariano, la lista se procesa instantáneamente, ya que ya hemos actualizado el caché usando `refetchQueries`. 
+
+Al principio es molesto tener que lidiar con la cache que se genera con Apollo Client. Si desea comenzar de manera simple, he visto a los desarrolladores hacer esto un par de veces y es desactivar el caché de Apollo de forma predeterminada y solo usarlo explícitamente, en caso de que sus optimizaciones tengan un gran impacto en la experiencia del usuario.
+
+
 ## References
 
 - [apollo-boost](https://github.com/apollographql/apollo-client/tree/master/packages/apollo-boost)
@@ -414,3 +572,4 @@ A continuación, queremos implementar la casilla de verificación de la interfaz
 - [render props](https://reactjs.org/docs/render-props.html)
 - [Caching data](https://www.apollographql.com/docs/react/advanced/caching.html)
 - [React Hooks](https://reactjs.org/docs/hooks-reference.html)
+- [Apollo Query props](https://www.apollographql.com/docs/react/essentials/queries.html#propsgit )
