@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import ApolloClient from "apollo-boost";
-import gql from "graphql-tag";
-import { ApolloProvider , ApolloConsumer} from "react-apollo";
+import { ApolloProvider } from "react-apollo";
 
+import Recipes from "./components/Recipes"
 import logo from './logo.svg';
 import './App.css';
 
@@ -14,30 +14,11 @@ class App extends Component {
   render() {
     return (
       <ApolloProvider client={client}>
-        <div className="App">
+        <div>
           <header className="App-header">
             <img src={logo} className="App-logo" alt="logo" />
           </header>
-          <div>Hello World!</div>
-          <ApolloConsumer>
-            {
-              client => {
-                client.query({
-                  query: gql`
-                    {
-                      recipes {
-                        id
-                        title
-                      }
-                    }
-                  `
-                })
-                .then(result => console.log(result));
-                
-                return null;
-              }
-            }
-          </ApolloConsumer>
+          <Recipes />
         </div>
       </ApolloProvider>
     );

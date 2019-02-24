@@ -81,8 +81,8 @@ $ npm run start:slow
 ## Branches
 
 - [`00-start`]() Tu punto de partida
-- [`01-setup`]()
-- [`02-setup`]()
+- [`01-setup`]() Configuración de Apollo Boost y React Apoll
+- [`02-query`]() Escribiendo componentes de consulta
 
 
 ## Client's Installation
@@ -112,7 +112,7 @@ $ npm i -S graphql apollo-boost react-apollo
 El paquete GraphQL es necesario para ciertas características, como el análisis de consultas GraphQL. `Apollo-boost` es un paquete que viene con el `ApolloClient` bien configurado para comenzar rápidamente. Por último, pero no menos importante `react-apollo`, integra Apollo con React proporcionando múltiples componentes y utilidades.
 
 Simplifiqué el por defecto del archivo `/client/src/App.js`.
-```js
+```jsx
 class App extends Component {
   render() {
     return (
@@ -192,7 +192,7 @@ Como puede ver, una vez que cargamos la página, la consulta se ejecutó y nuest
 
 Ya que tenemos `ReactApollo` disponible, veamos cómo podemos configurarlo y usarlo dentro de nuestra función de render. `import { ApolloProvider } from "react-apollo",`. El `ApolloProvider` requiere una instancia de Apollo `{cliente}` En nuestro caso, tomamos el que ya inicializamos y una vez configurado el `ApolloProvider` ahora pasamos el cliente por el árbol de *rendering* a través de una función de *React context*.
 
-```js
+```jsx
 import { ApolloProvider } from "react-apollo";
 
 class App extends Component {
@@ -219,7 +219,7 @@ import { ApolloProvider, ApolloConsumer } from "react-apollo";
 
 En este caso, tomamos nuestra consulta existente y la ejecutamos dentro de una *render prop* de `ApolloConsumer`. 
 
-```js
+```jsx
 class App extends Component {
   render() {
     return (
@@ -252,6 +252,100 @@ class App extends Component {
 *Para cumplir con las expectativas de la API de React, devolvimos null.* 
 
 Si bien `ApolloConsumer` puede ser útil en algunos casos, la mayoría de las veces, utilizará el componente de Consulta/Mutación o componentes de orden superior, todos en ReactApollo.
+
+## Fetch Data using the Apollo Query Component
+
+Para mostrar los datos, primero tenemos que buscarlos. El componente `Query` nos permite describir qué datos nos interesan y manejar automáticamente la obtención de nuestros datos. Una vez que recibimos los datos podemos procesarlos usando React. Dado que el componente `Query` maneja la obtención de datos, debemos asegurarnos de que tratamos adecuadamente los casos de un estado de carga, así como el momento en que se reciben los errores de la API de GraphQL. En esta lección cubriremos ambos.
+
+Vamos a comenzar con cambiar nuestro `ApolloConsumer` por el componente `Query`. El componente de *Query* nos permite obtener datos y proporciona los datos como una *render prop*. El componente de consulta tiene un **prop obligatorio**, `query`. Para la consulta, volveremos a utilizar la etiqueta gql con una cadena de consulta dentro de ella. Finalmente tendremos nuestro código de esta forma:
+
+```jsx
+import React, { Component } from "react";
+import ApolloClient from "apollo-boost";
+import gql from "graphql-tag";
+import { ApolloProvider, Query } from "react-apollo";
+
+const client = new ApolloClient({
+  uri: "http://localhost:4000/"
+});
+
+class App extends Component {
+  render() {
+    return (
+      <ApolloProvider client={client}>
+        <Query
+          query={gql`
+            {
+              recipes {
+                id
+                title
+              }
+            }
+          `}
+          />
+      </ApolloProvider>
+    );
+  }
+}
+
+export default App;
+```
+
+El componente `Query` utiliza el patrón de [`render props`](https://reactjs.org/docs/render-props.html) para devolvernos los datos de la consulta. De acuerdo a este patrón el *component child* de `query` debe ser precisamente una función.
+
+```jsx
+{
+  ({ data }) => {
+    if (data.recipes === undefined) return null;
+
+    return (
+      <ul>
+        {data.recipes.map(({ id, title }) =>
+          <li key={id}>{title}</li>
+        )}
+      </ul>
+    )
+  }
+}
+```
+
+Desglosemos las cosas importantes que suceden aquí:
+
+El componente `Query` de Apollo toma un prop *query* requerida con una consulta GraphQL que ha sido analizada usando el `gql` de `graphql-tag`. `Query` también toma una prop requerida `children` que debería ser una función. La función recibe una propiedad a la cual nosotros le hacemos *destructoring* para obtener solo la propiedad `data`, este objeto `data` inicialmente está vacío, pero una vez finalizada la carga, contiene los resultados de nuestra consulta. Validamos que la data tenga `recipes` adjuntas para mostralos en pantalla, de lo contrario `return null`.
+
+![Fetch data](./.readme-static/02.png)
+
+Funciona de maravilla.
+
+En este momento, no sabemos por qué nuestras `recipes` no están definidas, simplemente si no estan no las mostramos en pantalla, pero es probable que puedan estar cargandose o que ocurrió un error. Para ayudar con esto, el componente de *query* expone dos propiedades más, `loading` y `error`. Las cuales nos permiten ejecutar una UI diferente según el estado de la consulta.
+
+```jsx
+{
+  ({ data,loading, error }) => {
+    if (loading) return <p>Loading...</p>;
+    if (error) return <p>Something went wrong</p>;
+
+    return (
+      <ul>
+        {data.recipes.map(({ id, title }) =>
+          <li key={id}>{title}</li>
+        )}
+      </ul>
+    )
+  }
+}
+```
+
+Si actualizamos la aplicación web, podemos ver nuestra UI de *loading* hasta que finalice la carga y lleguen los datos reales.
+Para probar el error de la interfaz de usuario, detenemos el servidor. Como era de esperar, ahora vemos que el caso de error se muestra.
+
+### TODO
+Antes de terminar esta lección sobre el componente de consulta, queremos refactorizar el código un poco.
+
+- [-] Extrar el componente de consulta, crear un `recipes.js` .
+- [-] Crear una variable `QUERY` para tener nuestro `gql` query.
+- [-] Agregar importaciones necesarias.
+- [-] Actualizar `App.js` para funcionar con nuestro refactor.
 
 
 ## References
