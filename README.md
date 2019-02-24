@@ -8,7 +8,9 @@ Este taller es para principiantes de GraphQL con una comprensión básica de Rea
 
 ¡Bienvenido! Hoy aprenderemos cómo construir una aplicación React para consumir datos desde GraphQL utilizando y Apollo Client. ¡Empecemos! 🚀
 
-![GraphQL Data in React with Apollo Client](./.readme-static/apollo-graphql-react.png)
+<p align="center">
+  <img alt="GraphQL Data in React with Apollo Client" src="./.readme-static/apollo-graphql-react.png" width="400" />
+</p>
 
 ## Overview
 
