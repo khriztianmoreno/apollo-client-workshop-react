@@ -70,7 +70,7 @@ export default class AddRecipe extends React.Component {
               <span>Vegetarian</span>
             </label>
             <div>
-              <button>Add Recipe</button>
+              <button className="btn-add">Add Recipe</button>
             </div>
             {loading && <p>Adding a recipe - please wait...</p>}
             {error && <p>Error :( Please try again</p>}

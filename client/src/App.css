@@ -52,7 +52,7 @@ label input[type="checkbox"] + span {
   display: inline;
 }
 
-button,
+button.btn-add,
 input[type="button"],
 input[type="reset"],
 input[type="submit"] {
@@ -73,7 +73,7 @@ input[type="submit"] {
   white-space: nowrap;
 }
 
-button:hover,
+button.btn-add:hover,
 input[type="button"]:hover,
 input[type="reset"]:hover,
 input[type="submit"]:hover {
@@ -81,7 +81,7 @@ input[type="submit"]:hover {
   border-color: #5797e6;
 }
 
-button:focus,
+button.btn-add:focus,
 input[type="button"]:focus,
 input[type="reset"]:focus,
 input[type="submit"]:focus {
@@ -89,7 +89,7 @@ input[type="submit"]:focus {
   box-shadow: 0 0 0 2px #55a1ff66;
 }
 
-button:active,
+button.btn-add:active,
 input[type="button"]:active,
 input[type="reset"]:active,
 input[type="submit"]:active {
@@ -97,7 +97,7 @@ input[type="submit"]:active {
   border-color: #3180e2;
 }
 
-button[disabled],
+button[disabled].btn-add,
 input[type="button"][disabled],
 input[type="reset"][disabled],
 input[type="submit"][disabled] {
@@ -105,14 +105,13 @@ input[type="submit"][disabled] {
   opacity: 0.5;
 }
 
-button[disabled]:hover,
+button[disabled].btn-add:hover,
 input[type="button"][disabled]:hover,
 input[type="reset"][disabled]:hover,
 input[type="submit"][disabled]:hover {
   background-color: #4d9cff;
   border: 1px solid #448ae2;
 }
-
 
 .App-logo {
   animation: App-logo-spin infinite 20s linear;

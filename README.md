@@ -85,6 +85,7 @@ $ npm run start:slow
 - [`02-query`]() Escribiendo componentes de consulta
 - [`03-dynamic-queries`]() Asignado variables a nuestra consulta
 - [`04-mutations`]() Escribiendo componentes de mutación
+- [`05-schema-extending`]() Modificando el schema en el cliente
 
 
 ## Client's Installation
@@ -563,6 +564,237 @@ Vamos a actualizar la página. Luego añadimos otro plato vegetariano. Como pued
 
 Al principio es molesto tener que lidiar con la cache que se genera con Apollo Client. Si desea comenzar de manera simple, he visto a los desarrolladores hacer esto un par de veces y es desactivar el caché de Apollo de forma predeterminada y solo usarlo explícitamente, en caso de que sus optimizaciones tengan un gran impacto en la experiencia del usuario.
 
+## Manage Local State using Apollo by extending the GraphQL Schema on the Client 
+
+Con la introducción de `apollo-link-state`, Apollo introdujo por primera vez una forma de administrar el estado local a través de consultas y mutaciones de GraphQL. Esto se puede lograr utilizando la directiva `@client`. En esta lección, aprovecharemos esta función para realizar un seguimiento de las recetas destacadas y almacenar la información en el `localStorage`.
+
+En esta lección, queremos extender nuestra aplicación para permitir a los usuarios marcar sus recetas favoritas. Por lo tanto, queremos agregar un campo `isStarred` a la receta. Dado que nuestro esquema no admite este campo, planeamos mantener esta información únicamente en el cliente, almacenado unicamente en local.
+
+Para consultar un campo solo en el cliente, podemos aprovechar el decorador `@client` y agregarlo a un campo en una consulta o una mutación.
+
+```js
+import gql from "graphql-tag";
+
+export const GET_RECIPES = gql`
+  query recipes($vegetarian: Boolean!) {
+    recipes(vegetarian: $vegetarian) {
+      id
+      title
+      isStarred @client
+    }
+  }
+`;
+```
+Una vez agregado, este campo nunca se consulta en el punto final remoto, sin embargo, necesitamos proporcionar un resolver para esto. En nuestro archivo `app.js`, tendremos un objecto `resolver`  y para el tipo `recipe` agregue un resolver `isStarred`. Temporalmente vamos a devolver el valor `false` para todos los `recipes`.
+
+```js
+const resolvers = {
+  Recipe: {
+    isStarred: parent => false
+  }
+}
+```
+
+Luego podemos usar el objeto del *resolver* y pasarlo a la propiedad `clientState` durante la inicialización de `ApolloClient`.
+
+```js
+const client = new ApolloClient({
+  uri: "http://localhost:4000/",
+  clientState: {
+    resolvers
+  }
+});
+```
+Esto es todo lo que necesitamos para poder recuperar el valor `isStarred` en nuestra lista de `Recipes.js`. Procesamos una estrella junto a cada uno de los títulos, y el color debería cambiar, según el estado. Naranja, si la receta está marcada y gris si no lo está.
+
+```jsx
+return (
+  <ul>
+    {data.recipes.map(({ id, title, isStarred }) => (
+      <li key={id}>
+        {title}
+        <span style={{ color: isStarred ? "orange" : "grey" }}>
+          ★
+        </span>
+      </li>
+```
+Actualicemos la página y verifiquemos que todas las estrellas estén inactivas.
+
+![Recipe stars](./.readme-static/04.png)
+
+A continuación, necesitamos una mutación que nos permita actualizar el campo `isStarred` de una receta. Por lo tanto, extendemos nuestros *resolvers* del lado del cliente con una mutación que vamos a llamar `updateRecipeStarred`. Nuestro plan es almacenar un array de recetas destacadas en el `localstorage`. Antes de actualizarlo, recuperamos la lista.
+
+```js
+Mutation: {
+  updateRecipeStarred: (_, variables) => {
+    const starredRecipes = JSON.parse(localStorage.getItem("starredRecipes")) || [];
+  }
+}
+
+// Signature
+// fieldName(obj, args, context, info) { result }
+```
+Para conocer la firma de los resolvers puede ir [aquí](https://www.apollographql.com/docs/graphql-tools/resolvers.html#Resolver-function-signature)
+
+En caso de que la variable `isStarred` se establezca en `true`, añadimo el `id` actual al *localstorage*. En caso de que esté configurado como `false`, filtramos la lista actual de ID's del *localstorage* para guardar de nuevo los ID's sin el actual.
+
+```js
+Mutation: {
+  updateRecipeStarred: (_, variables) => {
+    const starredRecipes = JSON.parse(localStorage.getItem("starredRecipes")) || [];
+
+    if (variables.isStarred) {
+      const addItem = JSON.stringify(starredRecipes.concat([variables.id]))
+      localStorage.setItem("starredRecipes", addItem);
+    } else {
+      const removeItem = JSON.stringify(starredRecipes.filter(recipeId => recipeId !== variables.id))
+      localStorage.setItem("starredRecipes", removeItem);
+    }
+
+  }
+}
+```
+
+Al final, devolvemos un objeto con `__typename` y el valor `isStarred`. Esto es útil en caso de que un desarrollador quiera consultar el valor actualizado.
+
+```js
+Mutation: {
+  updateRecipeStarred: (_, variables) => {
+    ...
+
+    return {
+      __typename: "Recipe",
+      isStarred: variables.isStarred
+    };
+  }
+}
+```
+
+Como ahora tenemos la mutación y sabemos cómo almacenamos las recetas destacadas, también puede actualizar el codigo del resolver de `recipes`. En el *resolver*, verificamos si el array `starredRecipes` incluye el ID de la receta `parent.id` actual y devolvemos el resultado.
+
+```js
+const resolvers = {
+  Recipe: {
+    isStarred: parent => {
+      const starredRecipes = JSON.parse(localStorage.getItem("starredRecipes")) || [];
+      return starredRecipes.includes(parent.id);
+    }
+  },
+```
+
+Hasta este punto solo estabamos preparando el terreno, ahora tenemos todo lo que necesitamos para comenzar a usar nuestra mutación. Por lo tanto, agregamos una nueva mutación al archivo `src/components/Recipes.js`.
+
+```js
+const UPDATE_RECIPE_STARRED_MUTATION = gql`
+  mutation updateRecipeStarred($id: ID!, $isStarred: Boolean!) {
+    updateRecipeStarred(id: $id, isStarred: $isStarred) @client
+  }
+`;
+```
+
+Después de eso, importamos el componente `Mutation` y envolvemos el `span` con la estrella con él.
+
+```js
+import { Query, Mutation } from "react-apollo";
+```
+
+Luego pasamos nuestro `UPDATE_RECIPE_STARRED_MUTATION`. Dado que esta mutación afecta el resultado de nuestra consulta de recetas, proporcionamos los dos `refetchQeries`.
+
+```jsx
+<Mutation
+  mutation={UPDATE_RECIPE_STARRED_MUTATION}
+  refetchQueries={[
+    { query: GET_RECIPES, variables: { vegetarian: false } },
+    { query: GET_RECIPES, variables: { vegetarian: true } }
+  ]}
+  awaitRefetchQueries={true}
+>
+```
+Una vez más, establezca `awaitRefetchQueries` en verdadero. Después de eso, reemplazamos el `<span>` con un `<button>` y agregamos un evento `onClick`. Una vez que se hace clic, invocamos la mutación con el `ID` de receta actual y el valor inverso `!IsStarred`.
+
+```jsx
+<Mutation
+  mutation={UPDATE_RECIPE_STARRED_MUTATION}
+  refetchQueries={[
+   ...
+  ]}
+  awaitRefetchQueries={true}
+>
+  {
+    (updateRecipeStarred, { loading, error }) => (
+      <button
+        className="star-btn"
+        style={{...}}
+        onClick={() =>
+          updateRecipeStarred({
+            variables: { id, isStarred: !isStarred }
+          })
+        }
+      >
+        ★
+      </button>
+    )
+  }
+</Mutation>
+```
+
+A continuación, agregamos una clase llamada `star-btn`. Para asegurarme de que la estrella se vea realmente bien, agregué la clase al archivo `index.html`.
+
+```html
+<style>
+  .star-btn {
+    position: absolute;
+    padding: 0;
+    margin: 0 0 0 0.3rem;
+    height: 1.4rem;
+    line-height: 1.4rem;
+    background: none;
+    border: 0;
+    font-size: 1rem;
+    outline: 0
+  }
+  .star-btn:hover {
+    background: none;
+    opacity: 0.8;
+  }
+
+  .star-btn:focus {
+    box-shadow: none;
+  }
+
+  @keyframes inflate {
+    0% {
+      font-size: 1rem;
+      margin-left: 0.3rem;
+    }
+    100% {
+      font-size: 1.4rem;
+      margin-left: 0.1rem;
+    }
+  }
+</style>
+```
+
+Dependiendo del estado `loading`, agregamos la `animation`. Por último, pero no menos importante, renderizar texto en caso de que se produzca un `error`. Ahora, deberíamos poder comenzar nuestras recetas.
+
+```jsx
+(updateRecipeStarred, { loading, error }) => (
+  <button
+    className="star-btn"
+    style={{ 
+      color: isStarred ? "orange" : "grey",
+      animation: loading ? "inflate 0.7s ease infinite alternate" : "none"
+    }}
+    onClick={() =>
+      updateRecipeStarred({
+        variables: { id, isStarred: !isStarred }
+      })
+    }
+  >
+    ★ {error && "Failed to update"}
+  </button>
+)
+```
 
 ## References
 
@@ -573,3 +805,4 @@ Al principio es molesto tener que lidiar con la cache que se genera con Apollo C
 - [Caching data](https://www.apollographql.com/docs/react/advanced/caching.html)
 - [React Hooks](https://reactjs.org/docs/hooks-reference.html)
 - [Apollo Query props](https://www.apollographql.com/docs/react/essentials/queries.html#propsgit )
+- [Resolvers](https://www.apollographql.com/docs/graphql-tools/resolvers.html)
