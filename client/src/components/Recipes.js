@@ -73,23 +73,30 @@ const Recipes = () => {
         />
         <span>vegetarian</span>
       </label>
-      <Query query={GET_RECIPES} variables={{ vegetarian: checked.vegetarian }}>
+      <Query 
+        query={GET_RECIPES} 
+        variables={{ vegetarian: checked.vegetarian }}
+        pollInterval={3000}
+      >
         {
-          ({ data, loading, error }) => {
+          ({ data, loading, error, refetch }) => {
             if (loading) return <p>Loading…</p>;
             if (error) return <p>Something went wrong</p>;
 
             return (
-              <ul>
-                {
-                  data.recipes.map(({ id, title, isStarred }) => (
-                    <li key={id}>
-                      {title}
-                      <Start {...{id, isStarred}} />
-                    </li>
-                  ))
-                }
-              </ul>
+              <React.Fragment>
+                <ul>
+                  {
+                    data.recipes.map(({ id, title, isStarred }) => (
+                      <li key={id}>
+                        {title}
+                        <Start {...{id, isStarred}} />
+                      </li>
+                    ))
+                  }
+                </ul>
+                <button onClick={() => refetch()}> Refresh Recipes</button>
+              </React.Fragment>
             );
           }
         }

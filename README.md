@@ -86,6 +86,7 @@ $ npm run start:slow
 - [`03-dynamic-queries`]() Asignado variables a nuestra consulta
 - [`04-mutations`]() Escribiendo componentes de mutación
 - [`05-schema-extending`]() Modificando el schema en el cliente
+- [`06-refetch`]() Obtener datos manualmente en intervalos
 
 
 ## Client's Installation
@@ -795,6 +796,55 @@ Dependiendo del estado `loading`, agregamos la `animation`. Por último, pero no
   </button>
 )
 ```
+
+Actualizamos la página y le damos una oportunidad. Voila, funciona como un amuleto. Incluso funciona después de comprobar el filtro vegetariano.
+
+## Refetch Data with the Apollo Query Component either Manually or on Timed Intervals
+En esta lección, primero exploraremos cómo recuperar manualmente los datos de una consulta ya ejecutada para recibir el estado más reciente de nuestros datos. Más tarde, utilizamos el *polling* para recuperar el último estado en un intervalo de tiempo. El *polling* puede ser una herramienta simple y efectiva para proporcionar una experiencia casi en tiempo real sin la sobrecarga de configurar una solución WebSocket.
+
+Hasta ahora, utilizamos `data`, `loading`, `error` desde la función *render prop* de un componente de `Query`. Hay un par de utilidades más que vienen con este objeto. Uno de ellos es `refetch`.
+
+```jsx
+<Query query={GET_RECIPES} variables={{ vegetarian: checked.vegetarian }}>
+  {
+    ({ data, loading, error, refetch }) => {
+      if (loading) return <p>Loading…</p>;
+      if (error) return <p>Something went wrong</p>;
+
+      return (
+        ...
+      )
+  }
+</Query>
+```
+
+Una vez invocado, se volverá a ejecutar la consulta. Vamos a intentarlo agregando un `<button>` para actualizar las recetas.
+
+```jsx
+<React.Fragment>
+  ...
+
+  <button onClick={() => refetch()}> Refresh Recipes</button>
+</React.Fragment>
+```
+
+Una vez implementado, agregamos un nuevo elemento en otro navegador, volvemos a nuestro anterior tab y ejecutamos la recuperación presionando el botón. Como era de esperar, ahora vemos la nueva receta que se está agregando. Otros ejemplos de utilidades que vienen dentro del *render prop* del componente `Query` son: *network status*, obtener más datos con *pagination* o iniciar y detener el *polling*.
+
+Dicho esto, la forma más fácil de lograr el *polling* para obtener nuevos resultados es usar la prop `pollInterval` en el propio componente de consulta. De forma predeterminada, está desactivado, pero si proporciona un número como `{3000}`, el componente volverá a ejecutar la consulta cada tres segundos.
+
+```jsx
+<Query 
+  query={GET_RECIPES} 
+  variables={{ vegetarian: checked.vegetarian }}
+  pollInterval={3000}
+>
+```
+
+Puedes probar creando otra nueva receta en otra pestaña y como puedes ver en la pestaña anterior del navegador, se puede ver en pocos segundos esta nueva recenta sin hacer un web socket, el *polling* puede ser una herramienta simple y efectiva para proporcionar una experiencia en tiempo casi real.
+
+Con esto llegamos al final de este taller basico sobre **Apollo Client**
+
+**¡Espero que esto haya sido útil y/o te haya hecho aprender algo nuevo!**
 
 ## References
 
