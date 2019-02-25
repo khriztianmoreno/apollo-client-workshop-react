@@ -846,6 +846,16 @@ Con esto llegamos al final de este taller basico sobre **Apollo Client**
 
 **¡Espero que esto haya sido útil y/o te haya hecho aprender algo nuevo!**
 
+
+## Author
+
+* **Cristian Moreno** - *FullStack JavaScript Developer* - [Github](https://github.com/khriztianmoreno)
+See also the list of [contributors](https://github.com/khriztianmoreno/apollo-client-workshop-react/contributors) who participated in this project.
+
+## License
+
+This project is licensed under Copy Right - see the [LICENSE](LICENSE) file for details
+
 ## References
 
 - [apollo-boost](https://github.com/apollographql/apollo-client/tree/master/packages/apollo-boost)
