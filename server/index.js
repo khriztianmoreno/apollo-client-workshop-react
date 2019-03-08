@@ -16,11 +16,11 @@ const typeDefs = gql`
     title: String!
     vegetarian: Boolean!
     ingredients: [Ingredient!]!
-    calories: String!
-    fat: String!
-    cholestero: String!
-    carbohydrate: String!
-    protein: String!
+    calories: String
+    fat: String
+    cholestero: String
+    carbohydrate: String
+    protein: String
     # preparation: [String!]!
   }
 
