@@ -28,7 +28,7 @@ Espero que este taller te sea de utilidad y que lo disfrutes. 🙌🏻❤️
 
 ## Slides
 
-Si necesita hacer referencia a las diapositivas, puede verlas[aquí](https://fullstack-workshop-apollo.surge.sh).
+Si necesita hacer referencia a las diapositivas, puede verlas[aquí](https://slides.com/khriztianmoreno/graphql-apollo-client-workshop).
 
 ## Setup instructions
 Comenzaremos conociendo la estructura de nuestro repositorio lo cual nos va a facilitar el trabajo, luego con una guía sobre cómo agregar el cliente Apollo a un proyecto existente, luego seguiremos usando los componentes de Consulta y Mutación para obtener y manipular datos usando una API GraphQL.
@@ -126,7 +126,7 @@ class App extends Component {
         </header>
 
         <div>Hello World!</div>
-        
+
       </div>
     );
   }
@@ -145,7 +145,7 @@ const client = new ApolloClient({
 });
 ```
 
-Vamos a verificar que nuestro cliente funciona como se espera al solicitar datos de nuestro *endpoint* GraphQL mediante una consulta. Nuestro `client` espera un objeto que contiene al menos la propiedad de `query`. 
+Vamos a verificar que nuestro cliente funciona como se espera al solicitar datos de nuestro *endpoint* GraphQL mediante una consulta. Nuestro `client` espera un objeto que contiene al menos la propiedad de `query`.
 
 Escribimos uno usando la notación de *template tag*. ¿Qué busca ahora? Nuestro backend es un libro de cocina que contiene recetas. Para empezar, podemos crear todas las recetas. Para cada uno de ellos, solicitamos el `id` y el `title`.
 
@@ -163,7 +163,7 @@ client
   })
 ```
 
-Si observas, puedes ver que es necesario importar `gql`, esta dependencia es un *template literal string* que analiza las consultas de GraphQL en el estandar *AST*. Las cadenas GraphQL son la forma correcta de escribir consultas en nuestro código, ya que pueden analizarse de forma estática utilizando herramientas como [eslint-plugin-graphql](https://github.com/apollostack/eslint-plugin-graphql). Sin embargo, las cadenas son un inconveniente de manipular, si está tratando de hacer cosas como agregar campos adicionales, combinar varias consultas entre sí u otras cosas interesantes. 
+Si observas, puedes ver que es necesario importar `gql`, esta dependencia es un *template literal string* que analiza las consultas de GraphQL en el estandar *AST*. Las cadenas GraphQL son la forma correcta de escribir consultas en nuestro código, ya que pueden analizarse de forma estática utilizando herramientas como [eslint-plugin-graphql](https://github.com/apollostack/eslint-plugin-graphql). Sin embargo, las cadenas son un inconveniente de manipular, si está tratando de hacer cosas como agregar campos adicionales, combinar varias consultas entre sí u otras cosas interesantes.
 
 Ahí es donde entra en juego este paquete: le permite escribir sus consultas con los [literales de plantilla de ES2015](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals) y compilarlas en un AST con la etiqueta `gql`.
 
@@ -221,7 +221,7 @@ Ahora vamos a usar un `ApolloConsumer`, donde podemos aprovechar esta configurac
 import { ApolloProvider, ApolloConsumer } from "react-apollo";
 ```
 
-En este caso, tomamos nuestra consulta existente y la ejecutamos dentro de una *render prop* de `ApolloConsumer`. 
+En este caso, tomamos nuestra consulta existente y la ejecutamos dentro de una *render prop* de `ApolloConsumer`.
 
 ```jsx
 class App extends Component {
@@ -253,7 +253,7 @@ class App extends Component {
 }
 ```
 
-*Para cumplir con las expectativas de la API de React, devolvimos null.* 
+*Para cumplir con las expectativas de la API de React, devolvimos null.*
 
 Si bien `ApolloConsumer` puede ser útil en algunos casos, la mayoría de las veces, utilizará el componente de Consulta/Mutación o componentes de orden superior, todos en ReactApollo.
 
@@ -503,7 +503,7 @@ Ahora, queremos actualizar la lista con la mutación. Por lo tanto, podemos usar
 ```jsx
 render() {
   return (
-    <Mutation 
+    <Mutation
       mutation={ADD_RECIPE_MUTATION}
       refetchQueries={[
         {
@@ -561,11 +561,11 @@ Vamos a intentarlo. Añadimos una nueva receta. Luego veremos cómo se activan l
 >
 ```
 
-Vamos a actualizar la página. Luego añadimos otro plato vegetariano. Como puede ver, esta receta apareció en la lista al mismo tiempo que desaparecía el indicador de carga. Si activamos el filtro vegetariano, la lista se procesa instantáneamente, ya que ya hemos actualizado el caché usando `refetchQueries`. 
+Vamos a actualizar la página. Luego añadimos otro plato vegetariano. Como puede ver, esta receta apareció en la lista al mismo tiempo que desaparecía el indicador de carga. Si activamos el filtro vegetariano, la lista se procesa instantáneamente, ya que ya hemos actualizado el caché usando `refetchQueries`.
 
 Al principio es molesto tener que lidiar con la cache que se genera con Apollo Client. Si desea comenzar de manera simple, he visto a los desarrolladores hacer esto un par de veces y es desactivar el caché de Apollo de forma predeterminada y solo usarlo explícitamente, en caso de que sus optimizaciones tengan un gran impacto en la experiencia del usuario.
 
-## Manage Local State using Apollo by extending the GraphQL Schema on the Client 
+## Manage Local State using Apollo by extending the GraphQL Schema on the Client
 
 Con la introducción de `apollo-link-state`, Apollo introdujo por primera vez una forma de administrar el estado local a través de consultas y mutaciones de GraphQL. Esto se puede lograr utilizando la directiva `@client`. En esta lección, aprovecharemos esta función para realizar un seguimiento de las recetas destacadas y almacenar la información en el `localStorage`.
 
@@ -782,7 +782,7 @@ Dependiendo del estado `loading`, agregamos la `animation`. Por último, pero no
 (updateRecipeStarred, { loading, error }) => (
   <button
     className="star-btn"
-    style={{ 
+    style={{
       color: isStarred ? "orange" : "grey",
       animation: loading ? "inflate 0.7s ease infinite alternate" : "none"
     }}
@@ -833,8 +833,8 @@ Una vez implementado, agregamos un nuevo elemento en otro navegador, volvemos a 
 Dicho esto, la forma más fácil de lograr el *polling* para obtener nuevos resultados es usar la prop `pollInterval` en el propio componente de consulta. De forma predeterminada, está desactivado, pero si proporciona un número como `{3000}`, el componente volverá a ejecutar la consulta cada tres segundos.
 
 ```jsx
-<Query 
-  query={GET_RECIPES} 
+<Query
+  query={GET_RECIPES}
   variables={{ vegetarian: checked.vegetarian }}
   pollInterval={3000}
 >
