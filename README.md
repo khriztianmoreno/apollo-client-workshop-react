@@ -80,13 +80,13 @@ $ npm run start:slow
 
 ## Branches
 
-- [`00-start`]() Tu punto de partida
-- [`01-setup`]() Configuración de Apollo Boost y React Apoll
-- [`02-query`]() Escribiendo componentes de consulta
-- [`03-dynamic-queries`]() Asignado variables a nuestra consulta
-- [`04-mutations`]() Escribiendo componentes de mutación
-- [`05-schema-extending`]() Modificando el schema en el cliente
-- [`06-refetch`]() Obtener datos manualmente en intervalos
+- [`00-start`](https://github.com/khriztianmoreno/apollo-client-workshop-react/tree/00-start) Tu punto de partida
+- [`01-setup`](https://github.com/khriztianmoreno/apollo-client-workshop-react/tree/01-setup) Configuración de Apollo Boost y React Apoll
+- [`02-query`](https://github.com/khriztianmoreno/apollo-client-workshop-react/tree/02-query) Escribiendo componentes de consulta
+- [`03-dynamic-queries`](https://github.com/khriztianmoreno/apollo-client-workshop-react/tree/03-dynamic-queries) Asignado variables a nuestra consulta
+- [`04-mutations`](https://github.com/khriztianmoreno/apollo-client-workshop-react/tree/04-mutations-form) Escribiendo componentes de mutación
+- [`05-schema-extending`](https://github.com/khriztianmoreno/apollo-client-workshop-react/tree/05-schema-extending) Modificando el schema en el cliente
+- [`06-refetch`](https://github.com/khriztianmoreno/apollo-client-workshop-react/tree/06-refetch) Obtener datos manualmente en intervalos
 
 
 ## Client's Installation
