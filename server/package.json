@@ -10,7 +10,7 @@
     "ramda": "0.26.1"
   },
   "devDependencies": {
-    "nodemon": "1.19.4"
+    "nodemon": "2.0.1"
   },
   "scripts": {
     "start": "NODE_ENV=development nodemon index.js",
