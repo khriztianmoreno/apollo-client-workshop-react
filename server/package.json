@@ -4,7 +4,7 @@
   "private": false,
   "author": "Cristian Moreno <khriztianmoreno@gmail.com>",
   "dependencies": {
-    "apollo-server": "2.9.14",
+    "apollo-server": "2.10.0",
     "graphql": "14.6.0",
     "nedb-promise": "2.0.1",
     "ramda": "0.26.1"
